@@ -1,84 +1,39 @@
-# 🚀 Jatis FMCG DemoHub - GrowthAI
+# GrowthAI - Jatis Mobile DemoHub
 
-**Interactive Demo Hub & Self-Registration Funnel untuk C-Level FMCG**
-
-*"Try before you talk to sales."*
-
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-cyan)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-green)
+Interactive Demo Hub & Admin Dashboard untuk Jatis Mobile FMCG
 
 ---
 
-## 🎯 Overview
+## 🌐 Deployment ke Vercel
 
-Jatis FMCG DemoHub adalah website full stack yang mengubah website enterprise messaging Jatis Mobile menjadi pengalaman **"try-before-you-talk-to-sales"** khusus untuk C-level dan Head of Digital/Trade Marketing perusahaan FMCG.
+### Setup Project di Vercel Dashboard
 
-### ✨ Features
+1. Buka https://vercel.com/dashboard
+2. Klik **"Add New..."** → **"Project"**
+3. Import dari **GitHub** repo: `adhithyasoemitro/GrowthAI`
+4. **PENTING**: Untuk setiap project, set **Root Directory**:
 
-- **🛒 Chat Commerce Demo** — Simulasi WhatsApp Business Platform untuk order management
-- **🤖 Ngobrol.ai Demo** — AI chatbot untuk FAQ distributor & retailer  
-- **📞 RoboCall Demo** — AI voice agent untuk payment reminder
-- **📝 Lead Registration** — Form dengan WhatsApp OTP verification
-- **📊 Sales Dashboard** — Admin panel untuk manage leads & track engagement
-- **🎯 Lead Scoring** — Automatic scoring berdasarkan ICP fit
-- **📈 Analytics** — Event tracking & funnel measurement
+#### Project 1: Frontend (Demo Hub)
+| Setting | Value |
+|---------|-------|
+| Project Name | `growthai-frontend` |
+| Root Directory | `frontend` |
+| Build Command | `npm run build` |
+| Output Directory | `.next` |
 
----
+#### Project 2: Admin Panel
+| Setting | Value |
+|---------|-------|
+| Project Name | `growthai-admin` |
+| Root Directory | `admin-panel` |
+| Build Command | `npm run build` |
+| Output Directory | `.next` |
 
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 14, React 18, TypeScript |
-| Styling | Tailwind CSS, Framer Motion |
-| Backend | Next.js API Routes |
-| Database | Supabase (PostgreSQL) + Prisma ORM |
-| Auth | JWT (jose) + bcrypt |
-| Analytics | Custom event tracking |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- npm / yarn / pnpm
-- Supabase account
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/adhithyasoemitro/GrowthAI.git
-cd GrowthAI
-
-# Install dependencies
-npm install
-
-# Setup environment variables
-cp .env.local.example .env.local
-# Edit .env.local with your Supabase keys
-
-# Push database schema
-npx prisma db push
-
-# Seed database with admin user
-npx prisma db seed
-
-# Start development server
-npm run dev
-```
-
-### Environment Variables
+### Environment Variables (untuk kedua project)
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-JWT_SECRET=your-jwt-secret
+NEXT_PUBLIC_SUPABASE_URL=https://llvuzbfehapbicrlkivt.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_BuxRjfCswi3NXY51V3O5dA_-1EATvQ8
 ```
 
 ---
@@ -87,167 +42,98 @@ JWT_SECRET=your-jwt-secret
 
 ```
 GrowthAI/
-├── app/                    # Next.js App Router
-│   ├── api/               # API Routes
-│   │   ├── auth/         # Login, OTP
-│   │   ├── leads/        # Lead CRUD
-│   │   └── admin/        # Admin endpoints
-│   ├── admin/            # Admin dashboard
-│   ├── demos/            # Demo pages
-│   ├── leads/            # Registration page
-│   └── login/            # Login page
-├── components/           # React components
-│   ├── ui/              # UI primitives
-│   ├── landing/         # Landing page
-│   ├── demos/           # Demo components
-│   ├── registration/     # Registration form
-│   └── admin/           # Admin dashboard
-├── lib/                  # Utilities
-│   ├── auth.ts          # JWT helpers
-│   ├── prisma.ts        # Prisma client
-│   ├── utils.ts         # Common utilities
-│   ├── validations.ts   # Zod schemas
-│   ├── lead-scoring.ts  # Lead scoring logic
-│   ├── demo-scenarios.ts # Demo data
-│   └── analytics-context.tsx # Analytics provider
-├── prisma/              # Database schema
-├── supabase/            # Supabase config
-└── utils/supabase/      # Supabase clients
+├── frontend/          # Landing Page + Demo Hub
+│   ├── app/
+│   │   ├── page.tsx          # Landing page
+│   │   ├── leads/page.tsx     # Registration form
+│   │   ├── confirmation/     # Success page
+│   │   └── api/leads/        # API routes
+│   ├── lib/
+│   │   ├── supabase.ts
+│   │   └── utils.ts
+│   └── package.json
+│
+├── admin-panel/       # Admin Dashboard
+│   ├── app/
+│   │   ├── page.tsx          # Dashboard
+│   │   ├── login/page.tsx     # Login
+│   │   └── api/leads/        # API routes
+│   ├── lib/
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
 
-## 🔐 API Endpoints
+## 🎨 Tech Stack
 
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Admin login |
-| POST | `/api/auth/otp-request` | Send OTP via WhatsApp |
-| POST | `/api/auth/otp-verify` | Verify OTP |
-
-### Leads
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/leads` | List all leads |
-| POST | `/api/leads` | Create new lead |
-
-### Admin
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/leads` | Admin lead list with stats |
-| PATCH | `/api/admin/leads` | Update lead disposition |
+- **Next.js 14** - React Framework
+- **TypeScript** - Type Safety
+- **Tailwind CSS** - White Theme UI
+- **Supabase** - Database & Auth
 
 ---
 
-## 🎨 Demo Scenarios
+## 🔑 Credentials
 
-### 1. Chat Commerce (WhatsApp)
-- Product catalog browsing
-- Order taking via WhatsApp
-- Stock check integration
-- Payment confirmation
-- Digital receipt
-
-### 2. Ngobrol.ai (AI Chatbot)
-- Distributor FAQ handling
-- Shipping status lookup
-- Return policy information
-- Smart human handoff
-- Ticket creation
-
-### 3. RoboCall (Voice Agent)
-- Outbound payment reminder
-- IVR with DTMF
-- Interactive conversation
-- WhatsApp detail send
-- Call summary to CRM
-
----
-
-## 👥 Demo Credentials
-
+### Admin Login
 ```
-Admin Dashboard: http://localhost:3000/admin
-Login Email: admin@jatis-mobile.com
-Login Password: JatisFMCG2026!
+Email: admin@jatis-mobile.com
+Password: JatisFMCG2026!
 ```
 
 ---
 
-## 📊 Lead Scoring
+## 📝 Pages
 
-| Factor | Weight |
-|--------|--------|
-| Position Level | 15-25 pts |
-| Use Case | 18-30 pts |
-| Volume Range | 10-30 pts |
-| Demo Completion | 0-20 pts |
+### Frontend (`growthai-frontend.vercel.app`)
+- `/` - Landing page dengan demo cards
+- `/leads` - Registration form (step-by-step)
+- `/confirmation` - Success page
 
-**Grade A**: 80+ pts (High Intent)
-**Grade B**: 60-79 pts (Medium Intent)  
-**Grade C**: 40-59 pts (Low Intent)
-**Grade D**: <40 pts (Nurture)
+### Admin (`growthai-admin.vercel.app`)
+- `/` - Dashboard dengan lead table
+- `/login` - Admin login
 
 ---
 
-## 🔒 Security Features
+## 🔧 Supabase Schema
 
-- ✅ JWT authentication with HTTP-only cookies
-- ✅ WhatsApp OTP verification
-- ✅ Input sanitization & validation (Zod)
-- ✅ Rate limiting for OTP requests
-- ✅ PII masking in logs
-- ✅ Row-level security (Supabase RLS)
-- ✅ Security headers (middleware)
+Jalankan SQL ini di Supabase SQL Editor:
 
----
+```sql
+CREATE TABLE leads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  whatsapp TEXT NOT NULL,
+  company TEXT NOT NULL,
+  position TEXT NOT NULL,
+  use_case TEXT DEFAULT 'other',
+  volume_range TEXT DEFAULT 'not_sure',
+  follow_up_pref TEXT DEFAULT 'schedule_demo',
+  lead_score INTEGER DEFAULT 50,
+  intent TEXT DEFAULT 'medium',
+  status TEXT DEFAULT 'new',
+  disposition TEXT DEFAULT 'pending',
+  consent_given BOOLEAN DEFAULT false,
+  otp_verified BOOLEAN DEFAULT false,
+  traffic_source TEXT DEFAULT 'direct',
+  demo_history JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-## 📱 Responsive Design
+-- Enable RLS
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 
-- Mobile-first approach
-- Touch-friendly interactions
-- Safe area aware
-- Optimized for 360px - 1440px
+-- Allow public insert
+CREATE POLICY "Allow public insert" ON leads FOR INSERT WITH CHECK (true);
 
----
-
-## 🌐 Deployment
-
-### Vercel (Recommended)
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Set environment variables in Vercel dashboard
+-- Allow public select
+CREATE POLICY "Allow public select" ON leads FOR SELECT USING (true);
 ```
 
-### Supabase Setup
-
-1. Create new Supabase project
-2. Run `supabase/schema.sql` in SQL editor
-3. Enable Email auth provider
-4. Copy credentials to `.env.local`
-
 ---
 
-## 📄 License
-
-© 2026 Jatis Mobile. All rights reserved.
-PT. Agra Karya Digital
-
----
-
-## 🤝 Support
-
-- **WhatsApp**: 0815-1925-0845
-- **Email**: support@jatis-mobile.com
-- **Documentation**: [docs.jatis-mobile.com](https://docs.jatis-mobile.com)
-
----
-
-Built with ❤️ by **VeryCoolApps** — PT. Agra Karya Digital
+## © Jatis Mobile 2026

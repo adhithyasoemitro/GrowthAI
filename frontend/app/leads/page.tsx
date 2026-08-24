@@ -53,8 +53,8 @@ export default function LeadsPage() {
   };
 
   const canProceed = () => {
-    if (step === 1) return form.name && form.email && form.whatsapp;
-    if (step === 2) return form.company && form.position;
+    if (step === 1) return form.name.length >= 2 && form.email.includes("@") && form.whatsapp.length >= 8;
+    if (step === 2) return form.company.length >= 2 && form.position.length >= 2;
     if (step === 3) return form.useCase && form.volumeRange && form.followUpPref;
     if (step === 4) return form.consent;
     return true;
@@ -81,14 +81,17 @@ export default function LeadsPage() {
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Registration failed");
+        throw new Error(data.message || `Error ${res.status}: Registration failed`);
       }
 
+      // For demo purposes, redirect to confirmation even without real database
       router.push("/confirmation");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.";
+      setError(message);
     } finally {
       setLoading(false);
     }
