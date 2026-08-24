@@ -1,15 +1,5 @@
 {
   "framework": "nextjs",
   "buildCommand": "cd frontend && npm run build",
-  "outputDirectory": "frontend/.next",
-  "installCommand": "cd frontend && npm install",
-  "regions": ["sin1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://llvuzbfehapbicrlkivt.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_BuxRjfCswi3NXY51V3O5dA_-1EATvQ8"
-  },
-  "github": {
-    "enabled": true,
-    "autoAlias": true
-  }
+  "outputDirectory": "frontend/.next"
 }
