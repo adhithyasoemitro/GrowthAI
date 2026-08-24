@@ -1,52 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import {
-  MessageSquare, Zap, Shield, Users, TrendingUp, CheckCircle, ChevronDown,
-  Play, ArrowRight, Star, BarChart3, Target, Clock, Sparkles,
+import { 
+  MessageSquare, Bot, Phone, Zap, Shield, Users, TrendingUp, CheckCircle, 
+  Play, ArrowRight, Star, BarChart3, Target, Sparkles, ChevronDown,
+  ArrowUpRight, Clock, Globe, LayoutGrid, MousePointer, Gauge, Bell
 } from "lucide-react";
 
-// Track UTM parameters
-function __trackUTM() {
+// Track events
+function trackEvent(eventName: string, properties: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
-  
-  const params = new URLSearchParams(window.location.search);
-  const utmData = {
-    source: params.get("utm_source") || "direct",
-    medium: params.get("utm_medium") || "",
-    campaign: params.get("utm_campaign") || "",
-    term: params.get("utm_term") || "",
-    content: params.get("utm_content") || "",
-    timestamp: new Date().toISOString(),
-    url: window.location.href,
-  };
-  
-  // Store in localStorage for lead scoring
-  localStorage.setItem("utm_data", JSON.stringify(utmData));
-  
-  // Track page view event
-  _trackEvent("page_view", { page: "landing", ...utmData });
-}
-
-// Simple event tracking
-function _trackEvent(eventName: string, properties: Record<string, unknown> = {}) {
-  if (typeof window === "undefined") return;
-  
   const events = JSON.parse(localStorage.getItem("ga_events") || "[]");
   events.push({
     event: eventName,
-    properties,
+    properties: { page: "landing", ...properties },
     timestamp: new Date().toISOString(),
     session_id: localStorage.getItem("session_id") || "unknown",
   });
-  
-  // Keep only last 100 events
   if (events.length > 100) events.shift();
   localStorage.setItem("ga_events", JSON.stringify(events));
-  
-  // Console log for debugging
-  console.log("[Analytics]", eventName, properties);
 }
 
 const DEMO_CARDS = [
@@ -56,14 +29,14 @@ const DEMO_CARDS = [
     title: "Chat Commerce",
     subtitle: "WhatsApp Business Platform",
     description: "Simulasi lengkap chat commerce — katalog produk, order taking, konfirmasi stok, hingga digital receipt.",
-    gradient: "from-emerald-500 to-teal-500",
-    badgeColor: "emerald",
+    gradient: "from-emerald-400 to-teal-500",
+    badge: "SIMULASI",
+    badgeClass: "bg-emerald-50 text-emerald-600 border-emerald-200",
     kpis: [
       { label: "Conversion Rate", value: "23%" },
       { label: "Avg. Order", value: "Rp 850Rb" },
     ],
     href: "/demos/whatsapp-chat",
-    services: ["WhatsApp Business Platform", "Chat Commerce API", "Payment Gateway Integration", "CRM Integration"],
   },
   {
     id: "ai_chatbot",
@@ -71,14 +44,14 @@ const DEMO_CARDS = [
     title: "Ngobrol.ai",
     subtitle: "AI Chatbot untuk Distributor",
     description: "AI chatbot menangani pertanyaan distributor — shipping status, retur policy, hingga ticket creation.",
-    gradient: "from-violet-500 to-purple-500",
-    badgeColor: "violet",
+    gradient: "from-violet-400 to-purple-500",
+    badge: "SIMULASI",
+    badgeClass: "bg-violet-50 text-violet-600 border-violet-200",
     kpis: [
       { label: "FAQ Resolution", value: "87%" },
       { label: "CS Load Reduction", value: "65%" },
     ],
     href: "/demos/ai-chatbot",
-    services: ["ngobrol.ai", "NLP Engine", "Knowledge Base", "Ticketing System"],
   },
   {
     id: "robocall",
@@ -86,14 +59,14 @@ const DEMO_CARDS = [
     title: "RoboCall",
     subtitle: "AI Voice Agent Payment Reminder",
     description: "AI voice agent untuk reminder pembayaran otomatis — IVR, konfirmasi, dan escalation ke WhatsApp.",
-    gradient: "from-orange-500 to-amber-500",
-    badgeColor: "orange",
+    gradient: "from-orange-400 to-amber-500",
+    badge: "SIMULASI",
+    badgeClass: "bg-orange-50 text-orange-600 border-orange-200",
     kpis: [
       { label: "Collection Rate", value: "+34%" },
       { label: "Call Success", value: "89%" },
     ],
     href: "/demos/robocall",
-    services: ["RoboCall Engine", "IVR System", "Voice AI", "WhatsApp Escalation"],
   },
 ];
 
@@ -105,205 +78,203 @@ const TRUST_BADGES = [
 ];
 
 const STATS = [
-  { label: "Leads Generated", value: "2,847+", color: "text-brand-400" },
-  { label: "Demo Completions", value: "1,523", color: "text-emerald-400" },
-  { label: "Avg. Session", value: "4.2 min", color: "text-violet-400" },
-  { label: "Conversion Rate", value: "23%", color: "text-orange-400" },
+  { label: "Leads Generated", value: "2,847+", color: "text-brand-600" },
+  { label: "Demo Completions", value: "1,523", color: "text-emerald-600" },
+  { label: "Avg. Session", value: "4.2 min", color: "text-violet-600" },
+  { label: "Conversion Rate", value: "23%", color: "text-orange-600" },
 ];
 
 const FEATURES = [
-  { icon: "🎯", title: "Demo Interaktif Real-Time", desc: "Bukan slideshow. Pilih persona, input, dan lihat output nyata dari sistem Jatis Mobile." },
-  { icon: "🛡️", title: "Simulasi Tanpa Risiko", desc: "Tidak ada data klien nyata. Tidak ada broadcast nyata. Semua sandbox." },
-  { icon: "📊", title: "Lead Qualification Otomatis", desc: "Demo yang dicoba, use case yang dipilih — semua jadi sinyal untuk lead scoring." },
-  { icon: "✅", title: "WhatsApp OTP Verification", desc: "Nomor diverifikasi via OTP sebelum lead dikirim ke sales team." },
+  { icon: LayoutGrid, title: "Demo Interaktif Real-Time", desc: "Bukan slideshow. Pilih persona, input, dan lihat output nyata dari sistem Jatis Mobile.", color: "bg-brand-50 text-brand-600" },
+  { icon: Shield, title: "Simulasi Tanpa Risiko", desc: "Tidak ada data klien nyata. Tidak ada broadcast nyata. Semua sandbox.", color: "bg-emerald-50 text-emerald-600" },
+  { icon: Target, title: "Lead Qualification Otomatis", desc: "Demo yang dicoba, use case yang dipilih — semua jadi sinyal untuk lead scoring.", color: "bg-violet-50 text-violet-600" },
+  { icon: Bell, title: "WhatsApp OTP Verification", desc: "Nomor diverifikasi via OTP sebelum lead dikirim ke sales team.", color: "bg-orange-50 text-orange-600" },
 ];
 
-function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl bg-dark-800/80 backdrop-blur-xl border border-white/5 ${className}`}>
-      {children}
-    </div>
-  );
-}
+const LOGO_PARTNERS = [
+  "Indomaret", " Alfamart", "Indofood", "Unilever", "Astra", "Salim Group", "Telkom"
+];
 
 export default function HomePage() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Generate session ID if not exists
+  React.useEffect(() => {
     if (!localStorage.getItem("session_id")) {
       localStorage.setItem("session_id", `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     }
-    
-    // Track UTM
-    __trackUTM();
-    
-    // Track hero view
-    _trackEvent("hero_viewed", { timestamp: new Date().toISOString() });
+    trackEvent("page_view");
   }, []);
 
-  const getBadgeColor = (color: string) => {
-    const colors: Record<string, string> = {
-      emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-      violet: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-      orange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    };
-    return colors[color] || colors.emerald;
-  };
-
-  const handleDemoClick = (demoId: string, demoTitle: string) => {
-    _trackEvent("demo_clicked", {
-      demo_id: demoId,
-      demo_title: demoTitle,
-      source: "landing_page",
-      timestamp: new Date().toISOString(),
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-dark-900 text-white">
+    <div className="min-h-screen bg-white text-gray-900 overflow-x-hidden">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-dark-900/90 backdrop-blur-xl border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <Zap className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <Zap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-bold text-sm">GrowthAI</p>
-                <p className="text-xs text-white/40">by Jatis Mobile</p>
+                <p className="font-bold text-lg text-gray-900">GrowthAI</p>
+                <p className="text-xs text-gray-500">by Jatis Mobile</p>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#demos" className="text-white/60 hover:text-white text-sm font-medium transition-colors">Demos</a>
-              <a href="#features" className="text-white/60 hover:text-white text-sm font-medium transition-colors">Features</a>
-              <a href="/admin" className="text-white/60 hover:text-white text-sm font-medium transition-colors">Admin</a>
+              <a href="#demos" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Demos</a>
+              <a href="#features" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Features</a>
+              <a href="/admin" className="text-gray-600 hover:text-brand-600 font-medium transition-colors">Admin</a>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/admin" className="btn-secondary text-sm hidden sm:inline-flex">Login</Link>
+              <Link href="/admin" className="hidden sm:flex btn-secondary text-sm">Login</Link>
               <Link href="#demos" className="btn-primary text-sm">Try Demos</Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-dark-800 via-dark-900 to-dark-800" />
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: "linear-gradient(rgba(0,135,230,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,135,230,0.05) 1px, transparent 1px)", backgroundSize: "60px 60px"}} />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-brand-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-brand-100 to-brand-50 rounded-full blur-3xl opacity-60 animate-float" />
+          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-orange-100 to-amber-50 rounded-full blur-3xl opacity-60 animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-brand-50 via-transparent to-violet-50 rounded-full blur-3xl opacity-30" />
+        </div>
         
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-8">
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-30" style={{backgroundImage: "linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)", backgroundSize: "60px 60px"}} />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-50 border border-brand-200 mb-8 animate-slide-up">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-sm font-medium text-brand-400">Interactive Demo Hub for FMCG</span>
+            <span className="text-sm font-semibold text-brand-600">Interactive Demo Hub for FMCG</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-orange-500">Jatis FMCG</span>
-            <br /><span className="text-white">DemoHub</span>
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold mb-6 animate-slide-up">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 via-brand-500 to-violet-600">Jatis FMCG</span>
+            <br />
+            <span className="text-gray-900">DemoHub</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-white/60 mb-4 font-medium">"Try Before You Talk to Sales"</p>
-          <p className="text-base md:text-lg text-white/40 max-w-2xl mx-auto mb-10">
+          {/* Subheadline */}
+          <p className="text-xl md:text-2xl text-gray-600 font-medium mb-4 animate-slide-up">
+            "Try Before You Talk to Sales"
+          </p>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-12 animate-slide-up">
             Experience WhatsApp Business Platform, AI Chatbot, RoboCall, dan Enterprise Messaging 
             melalui simulasi operasional yang relevan dengan KPI FMCG Anda.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <a href="#demos" className="btn-primary text-base px-8 py-4 shadow-xl shadow-brand-500/25">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-up">
+            <a href="#demos" className="btn-primary text-base px-10 py-4 text-lg">
               <Play className="w-5 h-5" />Explore Demos
             </a>
-            <Link href="/admin" className="btn-secondary text-base px-8 py-4">
+            <Link href="/admin" className="btn-secondary text-base px-10 py-4 text-lg">
               <BarChart3 className="w-5 h-5" />Admin Panel
             </Link>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-12">
-            {TRUST_BADGES.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.03] border border-white/5">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-16 animate-slide-up">
+            {TRUST_BADGES.map((badge, i) => (
+              <div key={i} className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                <CheckCircle className="w-5 h-5 text-emerald-500" />
                 <div className="text-left">
-                  <p className="text-sm font-semibold text-white">{b.label}</p>
-                  <p className="text-xs text-white/40">{b.sublabel}</p>
+                  <p className="text-sm font-bold text-gray-900">{badge.label}</p>
+                  <p className="text-xs text-gray-500">{badge.sublabel}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            {STATS.map((s, i) => (
-              <div key={i} className="glass-card p-5 text-center">
-                <p className={`text-2xl sm:text-3xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-xs text-white/40 mt-1">{s.label}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-slide-up">
+            {STATS.map((stat, i) => (
+              <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                <p className={`text-3xl sm:text-4xl font-extrabold ${stat.color}`}>{stat.value}</p>
+                <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-          <ChevronDown className="w-6 h-6 text-white/30 animate-bounce" />
+          <ChevronDown className="w-8 h-8 text-gray-300 animate-bounce" />
         </div>
       </section>
 
-      {/* Demos */}
-      <section id="demos" className="py-20 px-4 bg-dark-800/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-4">
-              <Sparkles className="w-3 h-3" />SIMULASI INTERAKTIF
+      {/* Demos Section */}
+      <section id="demos" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-amber-50 text-amber-600 border border-amber-200 mb-6">
+              <Sparkles className="w-4 h-4" />SIMULASI INTERAKTIF
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">
-              3 Demo yang Bisa Anda Coba<span className="text-brand-400"> Sekarang</span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
+              3 Demo yang Bisa Anda Coba <span className="text-brand-600">Sekarang</span>
             </h2>
-            <p className="text-white/50 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
               Setiap demo adalah simulasi operasional lengkap — bukan fake UI. 
               Anda akan lihat apa yang terjadi di balik layar Jatis Mobile.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* Demo cards */}
+          <div className="grid md:grid-cols-3 gap-8">
             {DEMO_CARDS.map((demo, i) => (
               <div
                 key={i}
-                className={`glass-card relative overflow-hidden group transition-all duration-500 ${hoveredCard === i ? "ring-2 ring-brand-500/50" : ""}`}
+                className={`relative bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-500 ${hoveredCard === i ? "ring-2 ring-brand-400 shadow-xl -translate-y-2" : "card-hover"}`}
                 onMouseEnter={() => setHoveredCard(i)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <div className={`h-1 bg-gradient-to-r ${demo.gradient}`} />
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-white/5 border border-white/10">
+                {/* Gradient top bar */}
+                <div className={`h-1.5 bg-gradient-to-r ${demo.gradient}`} />
+                
+                <div className="p-8">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${demo.gradient} flex items-center justify-center text-3xl shadow-lg`}>
                         {demo.icon}
                       </div>
                       <div>
-                        <h3 className="font-bold text-white">{demo.title}</h3>
-                        <p className="text-xs text-white/40">{demo.subtitle}</p>
+                        <h3 className="text-xl font-bold text-gray-900">{demo.title}</h3>
+                        <p className="text-sm text-gray-500">{demo.subtitle}</p>
                       </div>
                     </div>
-                    <span className={`badge ${getBadgeColor(demo.badgeColor)}`}>SIMULASI</span>
+                    <span className={`badge-gradient ${demo.badgeClass}`}>{demo.badge}</span>
                   </div>
-                  <p className="text-sm text-white/50 mb-4 line-clamp-2">{demo.description}</p>
-                  <div className="flex gap-4 mb-5 p-3 rounded-xl bg-white/[0.03]">
-                    {demo.kpis.map((k, j) => (
+
+                  {/* Description */}
+                  <p className="text-gray-600 mb-6 line-clamp-3">{demo.description}</p>
+
+                  {/* KPIs */}
+                  <div className="flex gap-6 p-4 rounded-2xl bg-gray-50 mb-6">
+                    {demo.kpis.map((kpi, j) => (
                       <div key={j}>
-                        <p className="text-lg font-bold text-white">{k.value}</p>
-                        <p className="text-xs text-white/40">{k.label}</p>
+                        <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
+                        <p className="text-xs text-gray-500">{kpi.label}</p>
                       </div>
                     ))}
                   </div>
+
+                  {/* CTA */}
                   <Link 
-                    href={demo.href} 
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm bg-dark-700 text-white hover:bg-dark-600 transition-all"
-                    onClick={() => handleDemoClick(demo.id, demo.title)}
+                    href={demo.href}
+                    onClick={() => trackEvent("demo_clicked", { demo_id: demo.id })}
+                    className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-all"
                   >
-                    <Play className="w-4 h-4" />Coba Demo
+                    <Play className="w-5 h-5" />Coba Demo
                   </Link>
                 </div>
               </div>
@@ -312,30 +283,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-20 px-4 bg-dark-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-4">
-              <CheckCircle className="w-3 h-3" />FITUR UNGGULAN
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 mb-6">
+              <CheckCircle className="w-4 h-4" />FITUR UNGGULAN
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">
-              Mengapa DemoHub<span className="text-brand-400"> Berbeda</span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
+              Mengapa DemoHub <span className="text-brand-600">Berbeda</span>
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto">
+            <p className="text-lg text-gray-500 max-w-xl mx-auto">
               Tidak ada demo lain yang memberikan pengalaman seinteraktif dan seabstrak ini.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="glass-card p-6 hover:border-white/15 transition-all group">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-2xl flex-shrink-0">
-                    {f.icon}
+
+          {/* Feature grid */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {FEATURES.map((feature, i) => (
+              <div key={i} className="group bg-white rounded-3xl p-8 border border-gray-100 hover:border-brand-200 hover:shadow-xl transition-all duration-300">
+                <div className="flex gap-5">
+                  <div className={`w-14 h-14 rounded-2xl ${feature.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                    <feature.icon className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white mb-2 group-hover:text-brand-400 transition-colors">{f.title}</h3>
-                    <p className="text-sm text-white/50">{f.desc}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors">{feature.title}</h3>
+                    <p className="text-gray-600">{feature.desc}</p>
                   </div>
                 </div>
               </div>
@@ -344,44 +318,57 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-4 bg-dark-900">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl glass-card p-8 md:p-16 text-center">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-brand-500/10 rounded-full blur-3xl" />
-            <div className="relative">
-              <Star className="w-12 h-12 text-brand-400 mx-auto mb-6" />
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Siap Coba?</h2>
-              <p className="text-lg text-white/50 mb-8 max-w-xl mx-auto">
-                Pilih demo yang paling relevan dengan peran Anda, coba simulasi interaktif, dan daftarkan diri untuk lanjut ke free trial.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#demos" className="btn-primary text-base px-8 py-4 shadow-xl shadow-brand-500/25">
-                  <Play className="w-5 h-5" />Mulai Demo Sekarang
-                </a>
-                <Link href="/leads" className="btn-secondary text-base px-8 py-4">
-                  <ArrowRight className="w-5 h-5" />Daftar Sekarang
-                </Link>
-              </div>
-            </div>
+      {/* Partners/Clients */}
+      <section className="py-16 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm font-medium text-gray-400 mb-8">TRUSTED BY LEADING FMCG COMPANIES</p>
+          <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12 opacity-60">
+            {LOGO_PARTNERS.map((partner, i) => (
+              <div key={i} className="text-xl font-bold text-gray-400">{partner}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 bg-gradient-to-br from-brand-600 via-brand-500 to-violet-600 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-400/20 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Star className="w-16 h-16 text-white/80 mx-auto mb-8" />
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-6">Siap Coba?</h2>
+          <p className="text-xl text-white/80 mb-10 max-w-xl mx-auto">
+            Pilih demo yang paling relevan dengan peran Anda, coba simulasi interaktif, dan daftarkan diri untuk lanjut ke free trial.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#demos" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-bold text-brand-600 bg-white hover:bg-gray-100 transition-all shadow-xl">
+              <Play className="w-5 h-5" />Mulai Demo Sekarang
+            </a>
+            <Link href="/leads" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-semibold text-white border-2 border-white/30 hover:bg-white/10 transition-all">
+              <ArrowRight className="w-5 h-5" />Daftar Sekarang
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-12">
+      <footer className="py-12 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="font-bold text-white text-sm">GrowthAI DemoHub</p>
-                <p className="text-xs text-white/40">by Jatis Mobile</p>
+                <p className="font-bold text-white">GrowthAI DemoHub</p>
+                <p className="text-xs text-gray-400">by Jatis Mobile</p>
               </div>
             </div>
-            <p className="text-xs text-white/30">
+            <p className="text-sm text-gray-400">
               © 2026 Jatis Mobile. All rights reserved.
             </p>
           </div>
