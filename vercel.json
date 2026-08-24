@@ -1,25 +1,12 @@
 {
-  "framework": null,
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
+  "framework": "nextjs",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && npm install",
   "regions": ["sin1"],
-  "projects": [
-    {
-      "path": "frontend",
-      "name": "growthai-frontend",
-      "sku": "front-end"
-    },
-    {
-      "path": "admin-panel", 
-      "name": "growthai-admin",
-      "sku": "admin-panel"
-    }
-  ],
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "JWT_SECRET": "@jwt_secret"
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key"
   },
   "github": {
     "enabled": true,
