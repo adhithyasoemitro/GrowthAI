@@ -1,54 +1,99 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   MessageSquare, Zap, Shield, Users, TrendingUp, CheckCircle, ChevronDown,
   Play, ArrowRight, Star, BarChart3, Target, Clock, Sparkles,
 } from "lucide-react";
 
+// Track UTM parameters
+function __trackUTM() {
+  if (typeof window === "undefined") return;
+  
+  const params = new URLSearchParams(window.location.search);
+  const utmData = {
+    source: params.get("utm_source") || "direct",
+    medium: params.get("utm_medium") || "",
+    campaign: params.get("utm_campaign") || "",
+    term: params.get("utm_term") || "",
+    content: params.get("utm_content") || "",
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+  };
+  
+  // Store in localStorage for lead scoring
+  localStorage.setItem("utm_data", JSON.stringify(utmData));
+  
+  // Track page view event
+  _trackEvent("page_view", { page: "landing", ...utmData });
+}
+
+// Simple event tracking
+function _trackEvent(eventName: string, properties: Record<string, unknown> = {}) {
+  if (typeof window === "undefined") return;
+  
+  const events = JSON.parse(localStorage.getItem("ga_events") || "[]");
+  events.push({
+    event: eventName,
+    properties,
+    timestamp: new Date().toISOString(),
+    session_id: localStorage.getItem("session_id") || "unknown",
+  });
+  
+  // Keep only last 100 events
+  if (events.length > 100) events.shift();
+  localStorage.setItem("ga_events", JSON.stringify(events));
+  
+  // Console log for debugging
+  console.log("[Analytics]", eventName, properties);
+}
+
 const DEMO_CARDS = [
   {
+    id: "whatsapp_chat",
     icon: "🛒",
     title: "Chat Commerce",
     subtitle: "WhatsApp Business Platform",
     description: "Simulasi lengkap chat commerce — katalog produk, order taking, konfirmasi stok, hingga digital receipt.",
     gradient: "from-emerald-500 to-teal-500",
-    badge: "SIMULASI",
     badgeColor: "emerald",
     kpis: [
       { label: "Conversion Rate", value: "23%" },
       { label: "Avg. Order", value: "Rp 850Rb" },
     ],
     href: "/demos/whatsapp-chat",
+    services: ["WhatsApp Business Platform", "Chat Commerce API", "Payment Gateway Integration", "CRM Integration"],
   },
   {
+    id: "ai_chatbot",
     icon: "🤖",
     title: "Ngobrol.ai",
     subtitle: "AI Chatbot untuk Distributor",
     description: "AI chatbot menangani pertanyaan distributor — shipping status, retur policy, hingga ticket creation.",
     gradient: "from-violet-500 to-purple-500",
-    badge: "SIMULASI",
     badgeColor: "violet",
     kpis: [
       { label: "FAQ Resolution", value: "87%" },
       { label: "CS Load Reduction", value: "65%" },
     ],
     href: "/demos/ai-chatbot",
+    services: ["ngobrol.ai", "NLP Engine", "Knowledge Base", "Ticketing System"],
   },
   {
+    id: "robocall",
     icon: "📞",
     title: "RoboCall",
     subtitle: "AI Voice Agent Payment Reminder",
     description: "AI voice agent untuk reminder pembayaran otomatis — IVR, konfirmasi, dan escalation ke WhatsApp.",
     gradient: "from-orange-500 to-amber-500",
-    badge: "SIMULASI",
     badgeColor: "orange",
     kpis: [
       { label: "Collection Rate", value: "+34%" },
       { label: "Call Success", value: "89%" },
     ],
     href: "/demos/robocall",
+    services: ["RoboCall Engine", "IVR System", "Voice AI", "WhatsApp Escalation"],
   },
 ];
 
@@ -84,6 +129,19 @@ function GlassCard({ children, className = "" }: { children: React.ReactNode; cl
 export default function HomePage() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
+  useEffect(() => {
+    // Generate session ID if not exists
+    if (!localStorage.getItem("session_id")) {
+      localStorage.setItem("session_id", `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    }
+    
+    // Track UTM
+    __trackUTM();
+    
+    // Track hero view
+    _trackEvent("hero_viewed", { timestamp: new Date().toISOString() });
+  }, []);
+
   const getBadgeColor = (color: string) => {
     const colors: Record<string, string> = {
       emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -91,6 +149,15 @@ export default function HomePage() {
       orange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
     };
     return colors[color] || colors.emerald;
+  };
+
+  const handleDemoClick = (demoId: string, demoTitle: string) => {
+    _trackEvent("demo_clicked", {
+      demo_id: demoId,
+      demo_title: demoTitle,
+      source: "landing_page",
+      timestamp: new Date().toISOString(),
+    });
   };
 
   return (
@@ -220,7 +287,7 @@ export default function HomePage() {
                         <p className="text-xs text-white/40">{demo.subtitle}</p>
                       </div>
                     </div>
-                    <span className={`badge ${getBadgeColor(demo.badgeColor)}`}>{demo.badge}</span>
+                    <span className={`badge ${getBadgeColor(demo.badgeColor)}`}>SIMULASI</span>
                   </div>
                   <p className="text-sm text-white/50 mb-4 line-clamp-2">{demo.description}</p>
                   <div className="flex gap-4 mb-5 p-3 rounded-xl bg-white/[0.03]">
@@ -231,7 +298,11 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <Link href={demo.href} className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm bg-dark-700 text-white hover:bg-dark-600 transition-all">
+                  <Link 
+                    href={demo.href} 
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm bg-dark-700 text-white hover:bg-dark-600 transition-all"
+                    onClick={() => handleDemoClick(demo.id, demo.title)}
+                  >
                     <Play className="w-4 h-4" />Coba Demo
                   </Link>
                 </div>
