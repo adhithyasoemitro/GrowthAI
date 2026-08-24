@@ -1,423 +1,313 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Users, TrendingUp, Eye, CheckCircle, Activity, BarChart3, Search, Download, RefreshCw,
-  Zap, Phone, Mail, X, Filter, ChevronDown, ExternalLink, MessageSquare,
+  Users, TrendingUp, TrendingDown, Activity, BarChart3, Search, Download,
+  Zap, Phone, Mail, Settings, LogOut, Menu, Bell, ArrowUpRight, Clock, Target, MessageSquare
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const USE_CASE_LABELS: Record<string, string> = {
-  consumer_engagement: "Consumer Engagement",
-  distributor_operations: "Distributor Operations",
-  customer_service: "Customer Service",
-  trade_promotion: "Trade Promotion",
-  order_management: "Order Management",
-  payment_collection: "Payment Collection",
-  loyalty_program: "Loyalty Program",
-  other: "Other",
-};
-
-const VOLUME_LABELS: Record<string, string> = {
-  "1k_10k": "1K - 10K/bulan", "10k_50k": "10K - 50K/bulan",
-  "50k_100k": "50K - 100K/bulan", "100k_500k": "100K - 500K/bulan",
-  "500k_plus": "500K+/bulan", not_sure: "Belum pasti",
-};
-
-const STATUS_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-  new: { text: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
-  contacted: { text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
-  qualified: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
-  converted: { text: "text-violet-700", bg: "bg-violet-50", border: "border-violet-200" },
-  lost: { text: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
-};
-
-const INTENT_COLORS: Record<string, { text: string; bg: string }> = {
-  high: { text: "text-emerald-700", bg: "bg-emerald-50" },
-  medium: { text: "text-amber-700", bg: "bg-amber-50" },
-  low: { text: "text-red-700", bg: "bg-red-50" },
-};
-
-interface Lead {
-  id: string;
-  name: string;
-  position: string;
-  company: string;
-  email: string;
-  whatsapp: string;
-  use_case: string;
-  volume_range: string;
-  lead_score: number;
-  intent: string;
-  status: string;
-  disposition: string;
-  otp_verified: boolean;
-  consent_given: boolean;
-  demo_count: number;
-  utm_source: string;
-  traffic_source: string;
-  created_at: string;
+function LineChart({ data, color }: { data: number[], color: string }) {
+  const maxVal = Math.max(...data);
+  const minVal = Math.min(...data);
+  const range = maxVal - minVal || 1;
+  const pts = data.map((v, i) => {
+    const xPct = (i / (data.length - 1)) * 100;
+    const yPct = 100 - (((v - minVal) / range) * 80);
+    return xPct + "," + yPct;
+  });
+  const points = pts.join(" ");
+  const areaPts = "0,100 " + points + " 100,100";
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 150 }}>
+      <defs>
+        <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={areaPts} fill="url(#grad)" />
+      <polyline fill="none" stroke={color} strokeWidth="2" points={points} />
+    </svg>
+  );
 }
 
-const MOCK_LEADS: Lead[] = [
-  { id: "1", name: "Budi Santoso", position: "Head of Digital Marketing", company: "PT Unilever Indonesia", email: "budi.s@unilever.com", whatsapp: "6281234567890", use_case: "consumer_engagement", volume_range: "100k_500k", lead_score: 78, intent: "high", status: "qualified", disposition: "meeting_booked", otp_verified: true, consent_given: true, demo_count: 3, utm_source: "linkedin", traffic_source: "linkedin", created_at: "2026-08-24T10:30:00" },
-  { id: "2", name: "Siti Rahayu", position: "Finance Manager", company: "PT Astra International", email: "siti.r@astra.co.id", whatsapp: "6289876543210", use_case: "payment_collection", volume_range: "500k_plus", lead_score: 92, intent: "high", status: "qualified", disposition: "contacted", otp_verified: true, consent_given: true, demo_count: 2, utm_source: "direct", traffic_source: "direct", created_at: "2026-08-24T09:15:00" },
-  { id: "3", name: "Ahmad Wijaya", position: "Supply Chain Director", company: "PT Indofood CBP", email: "ahmad.w@indofood.com", whatsapp: "6281122334455", use_case: "distributor_operations", volume_range: "100k_500k", lead_score: 65, intent: "medium", status: "new", disposition: "pending", otp_verified: true, consent_given: true, demo_count: 1, utm_source: "google", traffic_source: "google", created_at: "2026-08-23T16:45:00" },
-  { id: "4", name: "Dewi Kusuma", position: "CRM Manager", company: "PT Telekomunikasi Indonesia", email: "dewi.k@telkom.co.id", whatsapp: "6285566778899", use_case: "customer_service", volume_range: "50k_100k", lead_score: 55, intent: "medium", status: "contacted", disposition: "nurture", otp_verified: true, consent_given: true, demo_count: 2, utm_source: "email", traffic_source: "email", created_at: "2026-08-23T14:20:00" },
-  { id: "5", name: "Rudi Hermawan", position: "Trade Marketing Head", company: "PT Salim Group", email: "rudi.h@salim.co.id", whatsapp: "6289988776655", use_case: "trade_promotion", volume_range: "500k_plus", lead_score: 88, intent: "high", status: "qualified", disposition: "qualified_opportunity", otp_verified: true, consent_given: true, demo_count: 3, utm_source: "referral", traffic_source: "referral", created_at: "2026-08-23T11:00:00" },
-];
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const h = Math.floor(diff / 3600000);
-  if (h < 1) return "Baru saja";
-  if (h < 24) return `${h} jam lalu`;
-  return `${Math.floor(h / 24)} hari lalu`;
+function DonutChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  let currentAngle = -90;
+  const paths = segments.map(s => {
+    const angle = (s.value / total) * 360;
+    const start = currentAngle;
+    currentAngle += angle;
+    const end = currentAngle;
+    const startRad = (start * Math.PI) / 180;
+    const endRad = (end * Math.PI) / 180;
+    const r = 70;
+    const cx = 100;
+    const cy = 100;
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+    const largeArc = angle > 180 ? 1 : 0;
+    return { d: "M" + cx + "," + cy + " L" + x1 + "," + y1 + " A" + r + "," + r + " 0 " + largeArc + ",1 " + x2 + "," + y2 + " Z", color: s.color };
+  });
+  return (
+    <div className="flex items-center gap-8">
+      <svg viewBox="0 0 200 200" style={{ width: 160, height: 160 }}>
+        {paths.map((p, i) => <path key={i} d={p.d} fill={p.color} />)}
+      </svg>
+      <div className="space-y-2">
+        {segments.map((s, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }} />
+            <span className="text-sm text-gray-600">{s.label}</span>
+            <span className="text-sm font-semibold text-gray-900">{s.value}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
+
+const MOCK_DATA = {
+  totalLeads: 2847,
+  newThisWeek: 156,
+  conversionRate: 23.5,
+  avgSession: "4.2m",
+  weeklyLeads: [12, 18, 15, 25, 22, 28, 35, 32, 40, 38, 45, 52],
+  intentBreakdown: [
+    { label: "High Intent", value: 45, color: "#10b981" },
+    { label: "Medium Intent", value: 35, color: "#f59e0b" },
+    { label: "Low Intent", value: 20, color: "#ef4444" }
+  ],
+  leadsBySource: [
+    { label: "LinkedIn", value: 35 },
+    { label: "Google Ads", value: 28 },
+    { label: "Referral", value: 18 },
+    { label: "Email", value: 12 },
+    { label: "Direct", value: 7 }
+  ],
+  recentLeads: [
+    { id: "1", name: "Budi Santoso", company: "PT Unilever Indonesia", email: "budi.s@unilever.com", useCase: "Consumer Engagement", score: 78, intent: "high", status: "qualified", date: "2 jam lalu" },
+    { id: "2", name: "Siti Rahayu", company: "PT Astra International", email: "siti.r@astra.co.id", useCase: "Payment Collection", score: 92, intent: "high", status: "contacted", date: "3 jam lalu" },
+    { id: "3", name: "Ahmad Wijaya", company: "PT Indofood CBP", email: "ahmad.w@indofood.com", useCase: "Distributor Ops", score: 65, intent: "medium", status: "new", date: "5 jam lalu" },
+    { id: "4", name: "Dewi Kusuma", company: "PT Telkom", email: "dewi.k@telkom.co.id", useCase: "Customer Service", score: 55, intent: "medium", status: "contacted", date: "Kemarin" },
+    { id: "5", name: "Rudi Hermawan", company: "PT Salim Group", email: "rudi.h@salim.co.id", useCase: "Trade Promotion", score: 88, intent: "high", status: "qualified", date: "Kemarin" }
+  ]
+};
 
 export default function AdminDashboard() {
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterIntent, setFilterIntent] = useState("all");
-  const [selected, setSelected] = useState<Lead | null>(null);
-  const [dataSource, setDataSource] = useState<"supabase" | "demo">("demo");
-
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/leads");
-      const data = await res.json();
-      
-      if (data.leads && data.leads.length > 0) {
-        setLeads(data.leads);
-        setDataSource(data.storage || "demo");
-      } else {
-        // Fallback to mock data
-        setLeads(MOCK_LEADS);
-        setDataSource("demo");
-      }
-    } catch (error) {
-      console.error("Failed to fetch leads:", error);
-      setLeads(MOCK_LEADS);
-      setDataSource("demo");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filtered = leads.filter(l => {
-    const s = search.toLowerCase();
-    const match = !s || l.name.toLowerCase().includes(s) || l.company.toLowerCase().includes(s) || l.email.toLowerCase().includes(s);
-    return match && (filterStatus === "all" || l.status === filterStatus) && (filterIntent === "all" || l.intent === filterIntent);
-  });
-
-  const stats = {
-    total: leads.length,
-    new: leads.filter(l => l.status === "new").length,
-    qualified: leads.filter(l => l.status === "qualified").length,
-    avgScore: Math.round(leads.reduce((sum, l) => sum + l.lead_score, 0) / (leads.length || 1)),
-    highIntent: leads.filter(l => l.intent === "high").length,
-  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-sm">GrowthAI</p>
-                  <p className="text-xs text-gray-500">Admin Dashboard</p>
-                </div>
-              </Link>
-              <div className="hidden md:block h-8 w-px bg-gray-200" />
-              <span className="hidden md:inline text-sm text-gray-500">Jatis Mobile</span>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex flex-col h-full">
+          <div className="p-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <button onClick={fetchLeads} className="p-2 rounded-xl hover:bg-gray-100 text-gray-500" title="Refresh">
-                <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
-              </button>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                {dataSource === "supabase" ? "Live Data" : "Demo Data"}
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <Zap className="w-5 h-5 text-white" />
               </div>
-              <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-semibold text-gray-900">Admin Jatis</p>
-                  <p className="text-xs text-gray-500">admin@jatis-mobile.com</p>
+              <div>
+                <p className="font-bold text-gray-900">GrowthAI</p>
+                <p className="text-xs text-gray-500">Admin Dashboard</p>
+              </div>
+            </div>
+          </div>
+          <nav className="flex-1 p-4 space-y-1">
+            {[
+              { id: "overview", icon: BarChart3, label: "Overview" },
+              { id: "leads", icon: Users, label: "Leads" },
+              { id: "analytics", icon: TrendingUp, label: "Analytics" },
+              { id: "campaigns", icon: MessageSquare, label: "Campaigns" },
+              { id: "settings", icon: Settings, label: "Settings" },
+            ].map(item => (
+              <button key={item.id} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-gray-600 hover:bg-gray-50">
+                <item.icon className="w-5 h-5" />{item.label}
+              </button>
+            ))}
+          </nav>
+          <div className="p-4 border-t border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">A</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">Admin Jatis</p>
+                <p className="text-xs text-gray-500 truncate">admin@jatis-mobile.com</p>
+              </div>
+              <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400"><LogOut className="w-4 h-4" /></button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-h-screen">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100"><Menu className="w-5 h-5" /></button>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-500">Overview performa leads dan engagement</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-xl hover:bg-gray-100"><Bell className="w-5 h-5 text-gray-500" /><span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /></button>
+            <Link href="/" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100"><ArrowUpRight className="w-4 h-4" />Lihat Situs</Link>
+          </div>
+        </header>
+
+        <main className="flex-1 p-6 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Total Leads", value: "2,847", change: "+12%", icon: Users, color: "from-blue-500 to-blue-600", neg: false },
+              { label: "New This Week", value: "156", change: "+8%", icon: Activity, color: "from-emerald-500 to-emerald-600", neg: false },
+              { label: "Conversion Rate", value: "23.5%", change: "+3.2%", icon: Target, color: "from-violet-500 to-violet-600", neg: false },
+              { label: "Avg. Session", value: "4.2m", change: "-0.5%", icon: Clock, color: "from-orange-500 to-orange-600", neg: true },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500">{stat.label}</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  </div>
+                  <div className={"w-12 h-12 rounded-xl bg-gradient-to-br " + stat.color + " flex items-center justify-center shadow-lg"}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white font-bold">A</div>
+                <div className="flex items-center gap-1">
+                  {stat.neg ? <TrendingDown className="w-4 h-4 text-red-500" /> : <TrendingUp className="w-4 h-4 text-emerald-500" />}
+                  <span className={"text-sm font-semibold " + (stat.neg ? "text-red-500" : "text-emerald-600")}>{stat.change}</span>
+                  <span className="text-sm text-gray-400">vs last week</span>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Overview performa lead dan engagement demo</p>
-        </div>
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-bold text-gray-900">Leads Trend</h3>
+                  <p className="text-sm text-gray-500">Weekly performance</p>
+                </div>
+                <select className="px-3 py-2 rounded-lg border border-gray-200 text-sm">
+                  <option>Last 7 days</option><option>Last 30 days</option>
+                </select>
+              </div>
+              <LineChart data={MOCK_DATA.weeklyLeads} color="#0087E6" />
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-6">Intent Breakdown</h3>
+              <DonutChart segments={MOCK_DATA.intentBreakdown} />
+            </div>
+          </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Leads</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-6">Leads by Source</h3>
+              <div className="space-y-4">
+                {MOCK_DATA.leadsBySource.map((source, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="w-20 text-sm text-gray-600">{source.label}</div>
+                    <div className="flex-1 h-8 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-lg" style={{ width: source.value + "%" }} />
+                    </div>
+                    <div className="w-10 text-right text-sm font-semibold text-gray-900">{source.value}%</div>
+                  </div>
+                ))}
               </div>
-              <div className="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
-                <Users className="w-6 h-6" />
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-6">Conversion Funnel</h3>
+              <div className="space-y-3">
+                {[
+                  { label: "Demo Viewed", value: 100, color: "bg-blue-500" },
+                  { label: "Registration", value: 65, color: "bg-violet-500" },
+                  { label: "OTP Verified", value: 45, color: "bg-emerald-500" },
+                  { label: "Completed", value: 32, color: "bg-amber-500" },
+                  { label: "Qualified", value: 23, color: "bg-orange-500" },
+                ].map((stage, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className="w-28 text-sm text-gray-600">{stage.label}</div>
+                    <div className="flex-1 h-10 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className={"h-full " + stage.color + " rounded-lg flex items-center justify-end pr-4"} style={{ width: stage.value + "%" }}>
+                        <span className="text-sm font-semibold text-white">{stage.value}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Leads Baru</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.new}</p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <Activity className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Qualified</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.qualified}</p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Avg Score</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.avgScore}</p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Filters */}
-        <div className="card p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search nama, perusahaan, email..." className="input-field pl-10" />
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900">Recent Leads</h3>
+                <p className="text-sm text-gray-500">Latest submissions</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500/50" />
+                </div>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm outline-none">
+                  <option value="all">All Status</option>
+                  <option value="new">New</option><option value="contacted">Contacted</option><option value="qualified">Qualified</option>
+                </select>
+                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 font-medium text-sm hover:bg-blue-100">
+                  <Download className="w-4 h-4" />Export
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="input-field w-full md:w-36">
-                <option value="all">All Status</option>
-                <option value="new">New</option><option value="contacted">Contacted</option>
-                <option value="qualified">Qualified</option><option value="converted">Converted</option>
-              </select>
-              <select value={filterIntent} onChange={e => setFilterIntent(e.target.value)} className="input-field w-full md:w-32">
-                <option value="all">All Intent</option>
-                <option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
-              </select>
-              <button className="btn-secondary whitespace-nowrap">
-                <Download className="w-4 h-4" />Export
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="table-header">
-                  <th className="px-4 py-3 text-left">Lead</th>
-                  <th className="px-4 py-3 text-left">Perusahaan</th>
-                  <th className="px-4 py-3 text-left">Use Case</th>
-                  <th className="px-4 py-3 text-left">Volume</th>
-                  <th className="px-4 py-3 text-left">Source</th>
-                  <th className="px-4 py-3 text-left">Score</th>
-                  <th className="px-4 py-3 text-left">Intent</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Tanggal</th>
-                  <th className="px-4 py-3 text-left">Aksi</th>
+                <tr className="bg-gray-50 text-xs text-gray-500 font-medium">
+                  <th className="px-6 py-3 text-left">Lead</th><th className="px-6 py-3 text-left">Company</th>
+                  <th className="px-6 py-3 text-left">Use Case</th><th className="px-6 py-3 text-left">Score</th>
+                  <th className="px-6 py-3 text-left">Intent</th><th className="px-6 py-3 text-left">Status</th>
+                  <th className="px-6 py-3 text-left">Date</th><th className="px-6 py-3 text-left">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-gray-400">
-                      <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-                      <p className="text-sm">Loading leads...</p>
+              <tbody className="divide-y divide-gray-100">
+                {MOCK_DATA.recentLeads.map(lead => (
+                  <tr key={lead.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4"><p className="font-semibold text-gray-900">{lead.name}</p><p className="text-sm text-gray-500">{lead.email}</p></td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{lead.company}</td>
+                    <td className="px-6 py-4"><span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{lead.useCase}</span></td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: lead.score + "%" }} /></div>
+                        <span className="text-sm font-semibold">{lead.score}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={"px-3 py-1 rounded-full text-xs font-semibold " + (lead.intent === "high" ? "bg-emerald-50 text-emerald-600" : lead.intent === "medium" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600")}>
+                        {lead.intent.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={"px-3 py-1 rounded-full text-xs font-medium " + (lead.status === "qualified" ? "bg-violet-50 text-violet-600" : lead.status === "contacted" ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-blue-600")}>
+                        {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{lead.date}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1">
+                        <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600"><BarChart3 className="w-4 h-4" /></button>
+                        <button className="p-2 rounded-lg hover:bg-emerald-50 text-gray-400 hover:text-emerald-600"><Phone className="w-4 h-4" /></button>
+                        <button className="p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600"><Mail className="w-4 h-4" /></button>
+                      </div>
                     </td>
                   </tr>
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="px-4 py-12 text-center text-gray-400">
-                      <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Tidak ada leads ditemukan</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map(l => (
-                    <tr key={l.id} className="table-row">
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
-                        <p className="text-xs text-gray-500">{l.position}</p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-sm text-gray-900">{l.company}</p>
-                        <p className="text-xs text-gray-500">{l.email}</p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="badge badge-info">{USE_CASE_LABELS[l.use_case] || l.use_case}</span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{VOLUME_LABELS[l.volume_range] || l.volume_range}</td>
-                      <td className="px-4 py-3">
-                        <span className="badge badge-gray capitalize">{l.utm_source || l.traffic_source || "direct"}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${l.lead_score}%`, backgroundColor: l.lead_score >= 70 ? "#10b981" : l.lead_score >= 40 ? "#0ea5e9" : "#f59e0b" }} />
-                          </div>
-                          <span className="text-sm font-semibold text-gray-700">{l.lead_score}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={cn("badge", INTENT_COLORS[l.intent]?.bg, INTENT_COLORS[l.intent]?.text)}>
-                          {l.intent?.toUpperCase() || "MEDIUM"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={cn("badge", STATUS_COLORS[l.status]?.bg, STATUS_COLORS[l.status]?.text)}>
-                          {l.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{timeAgo(l.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => setSelected(l)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500" title="Detail">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <a href={`https://wa.me/${l.whatsapp.replace(/\D/g, "")}`} target="_blank" className="p-2 rounded-lg hover:bg-emerald-50 text-gray-500 hover:text-emerald-600" title="WhatsApp">
-                            <Phone className="w-4 h-4" />
-                          </a>
-                          <a href={`mailto:${l.email}`} className="p-2 rounded-lg hover:bg-blue-50 text-gray-500 hover:text-blue-600" title="Email">
-                            <Mail className="w-4 h-4" />
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
-        </div>
-      </main>
-
-      {/* Modal */}
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Lead Detail</h2>
-              <button onClick={() => setSelected(null)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center text-white text-xl font-bold">
-                  {selected.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">{selected.name}</h3>
-                  <p className="text-sm text-gray-500">{selected.position}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Email</p>
-                  <p className="text-sm font-medium text-gray-900">{selected.email}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">WhatsApp</p>
-                  <p className="text-sm font-medium text-gray-900">{selected.whatsapp}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Use Case</p>
-                  <p className="text-sm font-medium text-gray-900">{USE_CASE_LABELS[selected.use_case] || selected.use_case}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Volume</p>
-                  <p className="text-sm font-medium text-gray-900">{VOLUME_LABELS[selected.volume_range] || selected.volume_range}</p>
-                </div>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <span className={cn("badge", INTENT_COLORS[selected.intent]?.bg, INTENT_COLORS[selected.intent]?.text)}>
-                  {selected.intent?.toUpperCase() || "MEDIUM"} INTENT
-                </span>
-                <span className={cn("badge", STATUS_COLORS[selected.status]?.bg, STATUS_COLORS[selected.status]?.text)}>
-                  {selected.status?.toUpperCase()}
-                </span>
-                {selected.otp_verified && <span className="badge badge-success">OTP Verified</span>}
-                {selected.consent_given && <span className="badge badge-info">Consent Given</span>}
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <span className="badge badge-gray">Demos: {selected.demo_count || 0}</span>
-                <span className="badge badge-gray capitalize">Source: {selected.utm_source || selected.traffic_source || "direct"}</span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-2">Lead Score</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${selected.lead_score}%`, backgroundColor: selected.lead_score >= 70 ? "#10b981" : selected.lead_score >= 40 ? "#0ea5e9" : "#f59e0b" }} />
-                  </div>
-                  <span className="text-lg font-bold text-gray-900">{selected.lead_score}</span>
-                </div>
-              </div>
-              <div className="pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-2">Actions</p>
-                <div className="flex gap-3">
-                  <a href={`https://wa.me/${selected.whatsapp.replace(/\D/g, "")}`} target="_blank" className="flex-1">
-                    <button className="btn-primary w-full">
-                      <Phone className="w-4 h-4" /> WhatsApp
-                    </button>
-                  </a>
-                  <a href={`mailto:${selected.email}`} className="flex-1">
-                    <button className="btn-secondary w-full">
-                      <Mail className="w-4 h-4" /> Email
-                    </button>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        </main>
+      </div>
     </div>
   );
 }
