@@ -11,5 +11,6 @@
   "github": {
     "enabled": true,
     "autoAlias": true
-  }
+  },
+  "rootDirectory": "frontend"
 }
