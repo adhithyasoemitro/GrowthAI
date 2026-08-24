@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-inter: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+  @apply bg-white text-gray-900 antialiased;
+  min-height: 100vh;
+}
+
+::selection {
+  @apply bg-brand-500/20 text-gray-900;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white;
+    @apply bg-gradient-to-r from-brand-600 to-brand-500;
+    @apply hover:from-brand-500 hover:to-brand-400;
+    @apply shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30;
+    @apply transition-all duration-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold;
+    @apply bg-white text-gray-700 border border-gray-200;
+    @apply hover:bg-gray-50 hover:border-gray-300;
+    @apply shadow-sm hover:shadow-md;
+    @apply transition-all duration-300;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white;
+    @apply bg-gradient-to-r from-orange-500 to-orange-400;
+    @apply hover:from-orange-400 hover:to-orange-300;
+    @apply shadow-lg shadow-orange-500/25;
+    @apply transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200;
+    @apply bg-white text-gray-900 placeholder:text-gray-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500;
+    @apply transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100;
+    @apply shadow-sm hover:shadow-md;
+    @apply transition-all duration-300;
+  }
+
+  .card-interactive {
+    @apply bg-white rounded-2xl border border-gray-100 p-6 cursor-pointer;
+    @apply hover:border-brand-200 hover:shadow-lg;
+    @apply transition-all duration-300;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0087e6 0%, #f97316 100%);
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-simulation {
+    @apply bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .badge-live {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-new {
+    @apply bg-blue-50 text-blue-700 border border-blue-200;
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-16 md:py-24;
+  }
+
+  .container-width {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+
+  .hero-pattern {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0, 135, 230, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 135, 230, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Chat Bubbles */
+  .chat-bubble-user {
+    @apply ml-auto bg-gradient-to-br from-brand-600 to-brand-500 text-white px-4 py-2.5 rounded-2xl rounded-br-md shadow-md;
+  }
+
+  .chat-bubble-bot {
+    @apply bg-gray-100 text-gray-900 px-4 py-2.5 rounded-2xl rounded-bl-md border border-gray-100;
+  }
+
+  .typing-indicator {
+    @apply flex gap-1.5 p-3;
+  }
+
+  .typing-indicator span {
+    @apply w-2 h-2 rounded-full bg-gray-400;
+    animation: typingBounce 1.4s ease-in-out infinite;
+  }
+
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* Demo Panel */
+  .demo-panel {
+    @apply relative rounded-2xl overflow-hidden;
+    @apply bg-white border border-gray-100;
+    @apply shadow-sm;
+  }
+
+  .demo-panel::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1;
+    background: linear-gradient(90deg, #0087e6, #f97316, #0087e6);
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply relative flex h-3 w-3;
+  }
+
+  .status-dot span {
+    @apply absolute inline-flex h-full w-full rounded-full;
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  /* Table styles */
+  .table-header {
+    @apply bg-gray-50 text-xs text-gray-500 uppercase tracking-wider font-medium;
+  }
+
+  .table-row {
+    @apply border-b border-gray-50 hover:bg-gray-50/50 transition-colors;
+  }
+
+  /* Metric card */
+  .metric-card {
+    @apply bg-white rounded-2xl border border-gray-100 p-5;
+    @apply shadow-sm hover:shadow-md transition-all;
+  }
+
+  .metric-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 rounded-t-2xl;
+    background: linear-gradient(90deg, var(--tw-gradient-from), var(--tw-gradient-to));
+  }
+
+  /* Navbar */
+  .nav-link {
+    @apply text-gray-600 hover:text-brand-600 font-medium transition-colors;
+  }
+
+  .nav-link-active {
+    @apply text-brand-600 font-semibold;
+  }
+
+  /* Footer */
+  .footer-link {
+    @apply text-gray-500 hover:text-gray-700 transition-colors;
+  }
+}
+
+/* Responsive container for mobile */
+@media (max-width: 640px) {
+  .section-padding {
+    @apply px-4 py-12;
+  }
+}
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-2 ring-brand-500 ring-offset-2;
+}
+
+/* Disable animation for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
